@@ -34,3 +34,8 @@ Coming soon (hopefully).
 ## Advanced Usage:
 
 Subclass `edu.rice.mschurr.spark_whoops.WhoopsHandler` and install your subclass instead of `WhoopsHandler`.
+
+## Notes:
+
+* This handler reveals server internals and possibly code. Only enable it when you are developing and make sure to disable it before pushing to production.
+* Code snippets will only be displayed if the Java source file for the corresponding exception stack frame is available within the current working directory.
