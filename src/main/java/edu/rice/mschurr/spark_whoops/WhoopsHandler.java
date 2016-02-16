@@ -25,7 +25,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import freemarker.template.Configuration;
 
@@ -113,6 +112,7 @@ public class WhoopsHandler implements ExceptionHandler {
     req.put("User-Agent", Optional.fromNullable(request.userAgent()).or("-"));
     req.put("URI", Optional.fromNullable(request.uri()).or("-"));
     req.put("URL", Optional.fromNullable(request.url()).or("-"));
+    req.put("Query String", Optional.fromNullable(request.queryString()).or("-"));
     req.put("Scheme", Optional.fromNullable(request.scheme()).or("-"));
     req.put("Method", Optional.fromNullable(request.requestMethod()).or("-"));
     req.put("Protocol", Optional.fromNullable(request.protocol()).or("-"));
@@ -124,7 +124,12 @@ public class WhoopsHandler implements ExceptionHandler {
     req.put("Content Length", request.contentLength() == -1 ? "-" : Integer.toString(request.contentLength()));
     req.put("Context Path", Optional.fromNullable(request.contextPath()).or("-"));
     req.put("Body", Optional.fromNullable(request.body()).or("-"));
-    req.put("Attributes", "[" + Joiner.on(", ").join(Optional.fromNullable(request.attributes()).or(ImmutableSet.of())) + "]");
+    
+    LinkedHashMap<String, Object> requestAttributes = new LinkedHashMap<>();
+    tables.put("Request Attributes", requestAttributes);
+    for (String attr : request.attributes()) {
+      requestAttributes.put(attr, request.attribute(attr).toString());
+    }
     
     LinkedHashMap<String, Object> session = new LinkedHashMap<>();
     tables.put("Session", session);
@@ -143,9 +148,11 @@ public class WhoopsHandler implements ExceptionHandler {
     tables.put("Route Parameters", request.params());
     
     LinkedHashMap<String, Object> headers = new LinkedHashMap<>();
-    tables.put("Headers", headers);
+    tables.put("Request Headers", headers);
     for (String header : request.headers()) {
-      headers.put(header, request.headers(header));
+      if (!header.equals("Cookie")) {
+        headers.put(header, request.headers(header));
+      }
     }
   }
   
