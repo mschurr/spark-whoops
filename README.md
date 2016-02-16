@@ -60,7 +60,7 @@ By default Whoops looks within the folders `src/main/java` and `src/test/java` i
 
 ```java
 Spark.exception(Exception.class, new WhoopsHandler(
-    ImmutableList.of(new FileSearchSourceLocator("/path/to/look/in"))));
+    ImmutableList.of(new FileSearchSourceLocator(new File("/path/to/source/code")))));
 ```
 
 You can specify multiple locators in the list (later ones are used as fallbacks if earlier ones cannot find a file). If this is still not specific enough for you, you can implement your own `SourceLocator` to find the files and provide that to the handler.
@@ -72,4 +72,4 @@ You can specify multiple locators in the list (later ones are used as fallbacks 
 
 ## Credits:
 
-Based on [filp/whoops](http://filp.github.io/whoops/).
+By [mschurr](https://github.com/mschurr/). Based on [filp/whoops](http://filp.github.io/whoops/).
