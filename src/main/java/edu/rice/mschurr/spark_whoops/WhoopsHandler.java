@@ -3,16 +3,13 @@ package edu.rice.mschurr.spark_whoops;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,27 +27,36 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 
 public class WhoopsHandler implements ExceptionHandler {
   protected final static Logger logger = LoggerFactory.getLogger(WhoopsHandler.class);
-  
-  /**
-   * Installs the Whoops pretty-page handler for all Exceptions.
-   */
-  public static void install() {
-    Spark.exception(Exception.class, new WhoopsHandler());
-  }
-  
+   
   protected final FreeMarkerEngine templateEngine;
   protected final Configuration templateConfig;
-
-  protected WhoopsHandler() {
+  protected final ImmutableList<SourceLocator> sourceLocators;
+  
+  public WhoopsHandler() {
     templateEngine = new FreeMarkerEngine();
     templateConfig = new Configuration();
-    templateConfig.setTemplateLoader(new ClassTemplateLoader(WhoopsHandler.class, "."));
+    templateConfig.setClassForTemplateLoading(getClass(), "/templates/");
     templateEngine.setConfiguration(templateConfig);
+    sourceLocators = ImmutableList.of(
+      new FileSearchSourceLocator(new File("./src/main/java")),
+      new FileSearchSourceLocator(new File("./src/test/java"))
+    );
+  }
+  
+  public WhoopsHandler(ImmutableList<SourceLocator> sourceLocators) {
+    templateEngine = new FreeMarkerEngine();
+    templateConfig = new Configuration();
+    templateConfig.setClassForTemplateLoading(getClass(), "/templates/");
+    templateEngine.setConfiguration(templateConfig);
+    this.sourceLocators = sourceLocators;
+  }
+  
+  protected final String resourceToString(String name) throws FileNotFoundException, IOException {
+    return IOUtils.toString(new FileInputStream(getClass().getClassLoader().getResource(name).getFile()));
   }
   
   @Override
@@ -67,10 +73,10 @@ public class WhoopsHandler implements ExceptionHandler {
       model.put("name", exception.getClass().getCanonicalName().split("\\."));
       model.put("basic_type", exception.getClass().getSimpleName());
       model.put("type", exception.getClass().getCanonicalName());
-      model.put("css", IOUtils.toString(new FileInputStream(new File(WhoopsHandler.class.getResource("whoops.css").toURI()))));
-      model.put("zepto_js", IOUtils.toString(new FileInputStream(new File(WhoopsHandler.class.getResource("zepto.min.js").toURI()))));
-      model.put("clipboard_js", IOUtils.toString(new FileInputStream(new File(WhoopsHandler.class.getResource("clipboard.min.js").toURI()))));
-      model.put("whoops_js", IOUtils.toString(new FileInputStream(new File(WhoopsHandler.class.getResource("whoops.base.js").toURI()))));
+      model.put("css", resourceToString("static/whoops.css"));
+      model.put("zepto_js", resourceToString("static/zepto.min.js"));
+      model.put("clipboard_js", resourceToString("static/clipboard.min.js"));
+      model.put("whoops_js", resourceToString("static/whoops.base.js"));
       
       LinkedHashMap<String, Map<String, ? extends Object>> tables = new LinkedHashMap<>();
       installTables(tables, request, exception);
@@ -78,12 +84,14 @@ public class WhoopsHandler implements ExceptionHandler {
       
       response.body(templateEngine.render(Spark.modelAndView(model, "whoops.ftl")));
     } catch (Exception e) {
+      // In case we encounter any exceptions trying to render the error page itself,
+      // have this simple fallback.
       response.body( 
           "<html>"
         + "  <body>"
         + "    <h1>Caught Exception:</h1>"
         + "    <pre>" + ExceptionUtils.getStackTrace(exception) + "</pre>"
-        + "    <h1>Caught Exception Rendering Error Page:</h1>"
+        + "    <h1>Caught Exception Rendering Whoops! Pretty Error Page:</h1>"
         + "    <pre>" + ExceptionUtils.getStackTrace(e) + "</pre>"
         + "  </body>"
         + "</html>"
@@ -169,7 +177,18 @@ public class WhoopsHandler implements ExceptionHandler {
     frame.put("function", Optional.fromNullable(sframe.getMethodName()).or(""));
     frame.put("comments", ImmutableList.of());
 
-    Optional<File> file = findFileForFrame(sframe);
+    // Try to find the source file corresponding to this exception stack frame.
+    // Go through the locators in order until the source file is found.
+    Optional<File> file = Optional.absent();
+    for (SourceLocator locator : sourceLocators) {
+      file = locator.findFileForFrame(sframe);
+      
+      if (file.isPresent()) {
+        break;
+      }
+    }
+    
+    // Fetch +-10 lines from the triggering line.
     Optional<Map<Integer, String>> codeLines = fetchFileLines(file, sframe);
     
     if (codeLines.isPresent()) {
@@ -183,84 +202,11 @@ public class WhoopsHandler implements ExceptionHandler {
       try {
         frame.put("canonical_path", file.get().getPath());
       } catch (Exception e) {
-        // Ignore (just don't have the canonical path).
+        // Not much we can do, so ignore and just don't have the canonical path.
       }
     }
     
     return frame.build();
-  }
-  
-  /**
-   * Attempts to find the source code (.java) file corresponding to the 
-   * class name given in the stack trace frame. Assumes that the source 
-   * code file is present within the working dir in ./src/main/java.
-   * @param frame A stack trace frame.
-   * @return An optional file containing the .java source for the frame.
-   */
-  private final Optional<File> findFileForFrame(StackTraceElement frame) {
-    // If the file has no frame attached, we can't find one (obviously).
-    if (frame.getFileName() == null) {
-      return Optional.absent();
-    }
-    
-    // TODO(mschurr): Possible also support /src/test/java?
-    File base = new File("./src/main/java");
-    try {
-      logger.debug("Base Path: " + base.getCanonicalPath());
-    } catch (IOException e1) {
-    }
-    
-    if (!base.exists()) {
-      return Optional.absent();
-    }
-    
-    // Find a list of all matching files (any files with the same name as the name provided
-    // in the trace). We may not find a file because sometimes source files are just not
-    // available (e.g. we only have .class files in compiled apps). Since the stack trace
-    // only gives the file base name, we need to enumerate all possibilities.
-    Collection<File> possibilities = FileUtils.listFiles(base, new IOFileFilter() {
-      @Override
-      public boolean accept(File file) {
-        return file.getName().equals(frame.getFileName());
-      }
-
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.equals(frame.getFileName());
-      }
-    }, TrueFileFilter.INSTANCE);
-    
-        
-    if (possibilities.size() == 1) {
-      // If there's one possibility, use it as the source file.
-      File file = Iterables.first(possibilities);
-      return Optional.of(file);
-    } else if (possibilities.size() > 1) {
-      // If there are multiple possibilities, use the class name to filter them down.
-      // Assumes the directory structures matches the package name of the class.
-      String className = frame.getClassName();
-      
-      if (className.indexOf('$') != -1) {
-        className = className.substring(0, className.lastIndexOf('$'));
-      }
-      
-      String path = Joiner.on(File.separatorChar).join(ImmutableList.of("src", "main", "java")) + 
-          File.separatorChar + className.replace('.', File.separatorChar) + ".java";
-      
-      try {
-        for (File file : possibilities) {
-          if (file.getCanonicalPath().endsWith(path)) {
-            return Optional.of(file);
-          }
-        }
-      } catch (IOException e) {
-        return Optional.absent();
-      }
-      
-      return Optional.absent();
-    } else {
-      return Optional.absent();
-    }
   }
   
   /**
@@ -299,7 +245,6 @@ public class WhoopsHandler implements ExceptionHandler {
       }
     } catch (Exception e) {
       // If we get an IOException, not much we can do... just ignore it and move on.
-      e.printStackTrace(System.err);
       return Optional.absent();
     }
     

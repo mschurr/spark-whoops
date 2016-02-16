@@ -10,7 +10,8 @@ public class WhoopsExample {
       throw new Exception("Testing Handler!");
     });
 
-    WhoopsHandler.install();
+    // Add this line to enable Whoops! error handling:
+    Spark.exception(Exception.class, new WhoopsHandler());
 
     Spark.init();
   }
