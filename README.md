@@ -69,6 +69,7 @@ You can specify multiple locators in the list (later ones are used as fallbacks 
 
 * This handler reveals server internals and possibly code. Only install it when you are developing and make sure to disable it before pushing to production.
 * Finding code snippets is an imperfect art since the original file locations are not preserved in the compiled bytecode. Thus, by default code snippets will only be displayed if the Java source file for the corresponding exception stack frame is available within the working directory under `src/main/java` or `src/main/test` and you are properly following the Java naming and directory structure conventions. See advanced usage to change this behavior.
+* Registering the exception handler for `Exception.class` serves as a catch-all. You can still install your own, more specific exception handlers. Spark prioritizes exception handlers by crawling up the class hierarchy from the exception thrown to `Exception` looking for a handler. Thus, handlers for subclasses of `Exception` will take precendence.
 
 ## Credits:
 
