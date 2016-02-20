@@ -55,8 +55,6 @@ public class WhoopsHandler implements ExceptionHandler {
       List<Map<String, Object>> frames = parseFrames(exception);
       
       LinkedHashMap<String, Object> model = new LinkedHashMap<>();
-      model.put("has_frames", !frames.isEmpty());
-      model.put("frame_count", frames.size());
       model.put("message", Optional.fromNullable(exception.getMessage()).or(""));
       model.put("plain_exception", ExceptionUtils.getStackTrace(exception));
       model.put("frames", frames);

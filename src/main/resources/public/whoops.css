@@ -66,9 +66,16 @@ header:hover {
     color: #bebebe;
     font-size: 14px;
 }
+.exc-title span:after {
+    content: ".";
+}
 
-.exc-title-primary {
+.exc-title span:last-of-type {
     color: #e95353;
+}
+
+.exc-title span:last-of-type:after {
+    content: "";
 }
 
 .exc-message {
@@ -119,7 +126,7 @@ header:hover {
 .frames-description {
     background: rgba(0, 0, 0, .05);
     padding: 8px 15px;
-    color: #a29d9d;
+    color: #827E7E;
     font-size: 11px;
 }
 
