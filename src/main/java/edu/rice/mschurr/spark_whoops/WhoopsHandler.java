@@ -44,7 +44,7 @@ public class WhoopsHandler implements ExceptionHandler {
   public WhoopsHandler(ImmutableList<SourceLocator> sourceLocators) {
     templateEngine = new FreeMarkerEngine();
     templateConfig = new Configuration();
-    templateConfig.setClassForTemplateLoading(getClass(), "/templates/");
+    templateConfig.setClassForTemplateLoading(getClass(), "/");
     templateEngine.setConfiguration(templateConfig);
     this.sourceLocators = sourceLocators;
   }
