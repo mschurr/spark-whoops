@@ -2,11 +2,11 @@
     position: absolute;
     right: 0;
     top: -10px;
-    width: 115px;
+    width: 125px;
 }
 
 #copy-button, #google-button {
-    width: 115px;
+    width: 125px;
     cursor: pointer;
     padding: 5px;
     background: #2a2a2a;
