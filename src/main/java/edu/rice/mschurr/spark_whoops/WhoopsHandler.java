@@ -2,10 +2,7 @@ package edu.rice.mschurr.spark_whoops;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,19 +11,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import freemarker.template.Configuration;
 import spark.ExceptionHandler;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 import spark.template.freemarker.FreeMarkerEngine;
-import spark.utils.IOUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import freemarker.template.Configuration;
 
 public class WhoopsHandler implements ExceptionHandler {
   protected final static Logger logger = LoggerFactory.getLogger(WhoopsHandler.class);
@@ -38,7 +33,7 @@ public class WhoopsHandler implements ExceptionHandler {
   public WhoopsHandler() {
     templateEngine = new FreeMarkerEngine();
     templateConfig = new Configuration();
-    templateConfig.setClassForTemplateLoading(getClass(), "/templates/");
+    templateConfig.setClassForTemplateLoading(getClass(), "/");
     templateEngine.setConfiguration(templateConfig);
     sourceLocators = ImmutableList.of(
       new FileSearchSourceLocator(new File("./src/main/java")),
@@ -49,13 +44,9 @@ public class WhoopsHandler implements ExceptionHandler {
   public WhoopsHandler(ImmutableList<SourceLocator> sourceLocators) {
     templateEngine = new FreeMarkerEngine();
     templateConfig = new Configuration();
-    templateConfig.setClassForTemplateLoading(getClass(), "/templates/");
+    templateConfig.setClassForTemplateLoading(getClass(), "/");
     templateEngine.setConfiguration(templateConfig);
     this.sourceLocators = sourceLocators;
-  }
-  
-  protected final String resourceToString(String name) throws FileNotFoundException, IOException {
-    return IOUtils.toString(new FileInputStream(getClass().getClassLoader().getResource(name).getFile()));
   }
   
   @Override
@@ -64,19 +55,13 @@ public class WhoopsHandler implements ExceptionHandler {
       List<Map<String, Object>> frames = parseFrames(exception);
       
       LinkedHashMap<String, Object> model = new LinkedHashMap<>();
-      model.put("has_frames", !frames.isEmpty());
-      model.put("frame_count", frames.size());
       model.put("message", Optional.fromNullable(exception.getMessage()).or(""));
       model.put("plain_exception", ExceptionUtils.getStackTrace(exception));
       model.put("frames", frames);
       model.put("name", exception.getClass().getCanonicalName().split("\\."));
       model.put("basic_type", exception.getClass().getSimpleName());
       model.put("type", exception.getClass().getCanonicalName());
-      model.put("css", resourceToString("static/whoops.css"));
-      model.put("zepto_js", resourceToString("static/zepto.min.js"));
-      model.put("clipboard_js", resourceToString("static/clipboard.min.js"));
-      model.put("whoops_js", resourceToString("static/whoops.base.js"));
-      
+
       LinkedHashMap<String, Map<String, ? extends Object>> tables = new LinkedHashMap<>();
       installTables(tables, request, exception);
       model.put("tables", tables);
