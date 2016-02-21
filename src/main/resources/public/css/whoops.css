@@ -1,0 +1,466 @@
+.cf:before,
+.cf:after {
+    content: " ";
+    display: table;
+}
+
+.cf:after {
+    clear: both;
+}
+
+.cf {
+    *zoom: 1;
+}
+
+body {
+    font: 12px "Helvetica Neue", helvetica, arial, sans-serif;
+    color: #131313;
+    background: #eeeeee;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    text-rendering: optimizeLegibility;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* BEGIN SPARK STYLING */
+
+#spark-header {
+    border-top: 2px solid #FFA500;
+    height: 50px;
+    background: #fff;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+    z-index: 1;
+    position: fixed;
+    width: 100%;
+}
+
+#spark-header h1 {
+    box-sizing: border-box;
+    float: left;
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 50px;
+    width: 30%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 0 0 20px;
+    padding: 0 40px 0 0;
+}
+
+#spark-header ul, #spark-header li {
+    float: left;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#spark-header li {
+    margin-right: 50px;
+    display: inline-block;
+}
+
+#spark-header li a {
+    text-decoration: none;
+    font-size: 16px;
+    line-height: 50px;
+    color: #333;
+}
+
+#some-buttons {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.some-button {
+    float: right;
+    margin-left: 8px;
+    opacity: .6;
+}
+
+.some-button:hover {
+    opacity: 1;
+}
+
+.some-button img {
+    height: 20px;
+    width: 20px;
+}
+
+#github-star {
+    float: right;
+    width: 95px;
+    height: 20px;
+    margin-left: 8px;
+    position: relative;
+}
+
+#star-bg, #star-frame {
+    position: absolute;
+}
+
+#spark-footer {
+    height: 20px;
+    line-height: 20px;
+    background: #f5f5f5;
+    border-top: 1px solid #ddd;
+    width: 100%;
+    z-index: 1;
+    position: fixed;
+    bottom: 0;
+    text-align: center;
+    font-size: 10px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+#spark-footer a {
+    color: #cc8400;
+}
+
+@media (max-width: 800px) {
+    #some-buttons {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    #spark-header a {
+        display: none;
+    }
+    #spark-header h1 {
+        text-align: center;
+        width: 100%;
+        margin: 0;
+        padding: 0 20px;
+    }
+}
+
+/* END SPARK STYLING */
+
+.container {
+    height: 100%;
+    height: -moz-calc(100% - 70px);
+    height: -webkit-calc(100% - 70px);
+    height: calc(100% - 70px);
+    width: 100%;
+    position: fixed;
+    margin: 0;
+    left: 0;
+    top: 50px;
+}
+
+.stack-container {
+    height: 100%;
+    position: relative;
+}
+
+.left-panel {
+    height: 100%;
+    overflow: auto;
+    float: left;
+    width: 30%;
+    background: #DADADC;
+}
+
+.details-container {
+    height: 100%;
+    overflow: auto;
+    float: right;
+    width: 70%;
+    background: #fafafa;
+}
+
+/* BEGIN LEFT PANEL HEADER */
+
+.left-panel header {
+    color: white;
+    box-sizing: border-box;
+    background-color: #2a2a2a;
+    padding: 35px 30px;
+    max-height: 180px;
+    overflow: hidden;
+}
+
+.exception {
+    position: relative;
+}
+
+.exc-title {
+    margin: 0;
+    color: #bebebe;
+    font-size: 14px;
+}
+
+.exc-title span:after {
+    content: ".";
+}
+
+.exc-title span:last-of-type {
+    color: #e95353;
+}
+
+.exc-title span:last-of-type:after {
+    content: "";
+}
+
+.exc-message {
+    font-size: 20px;
+    word-wrap: break-word;
+    margin: 4px 0 0 0;
+    color: white;
+}
+
+/* END LEFT PANEL HEADER */
+
+.frames-description {
+    background: rgba(0, 0, 0, .05);
+    padding: 8px 15px;
+    color: #827E7E;
+    font-size: 11px;
+}
+
+.frame {
+    position: relative;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    background: #eeeeee;
+}
+
+.frame:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, .05);
+}
+
+.frame.active {
+    box-shadow: inset 5px 0 0 0 #ffa500;
+    color: #ee9a00;
+}
+
+.frame:not(.active):hover {
+    background: #f2ebe3;
+}
+
+.frame-method-info {
+    margin-bottom: 10px;
+}
+
+.frame-class, .frame-function, .frame-index {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.frame-index {
+    position: absolute;
+    font-size: 11px;
+    color: #a29d9d;
+    background-color: rgba(0, 0, 0, .05);
+    height: 18px;
+    width: 18px;
+    line-height: 18px;
+    border-radius: 5px;
+    padding: 0 1px 0 1px;
+    text-align: center;
+    display: inline-block;
+}
+
+.frame-class {
+    box-sizing: border-box;
+    padding-left: 25px;
+}
+
+.frame-file {
+    font-family: "Inconsolata", "Fira Mono", "Source Code Pro", Monaco, Consolas, "Lucida Console", monospace;
+    word-wrap: break-word;
+    color: #a29d9d;
+}
+
+.frame-file .editor-link {
+    color: #272727;
+}
+
+.frame-line {
+    font-weight: bold;
+}
+
+.frame-line:before {
+    content: ":";
+}
+
+.frame-code {
+    padding: 5px;
+    background: #303030;
+    display: none;
+}
+
+.frame-code.active {
+    display: block;
+}
+
+.frame-code .frame-file {
+    color: #a29d9d;
+    padding: 12px 6px;
+
+    border-bottom: none;
+}
+
+.code-block {
+    padding: 10px;
+    margin: 0;
+    border-radius: 6px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, .05),
+    0 10px 30px rgba(0, 0, 0, .05),
+    inset 0 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+.linenums {
+    margin: 0;
+    margin-left: 10px;
+}
+
+.linenums li {
+    color: #A5A5A5;
+}
+
+.linenums li.current {
+    padding: 2px 0;
+    background: rgba(255, 100, 100, .07);
+}
+
+.linenums li.current.active {
+    background: rgba(255, 100, 100, .17);
+}
+
+.frame-comments {
+    border-top: none;
+    margin-top: 15px;
+    font-size: 12px;
+}
+
+.frame-comments.empty:before {
+    content: "No comments for this stack frame.";
+    font-weight: 300;
+    color: #a29d9d;
+}
+
+.frame-comment {
+    padding: 10px;
+    color: #e3e3e3;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, .05);
+}
+
+.frame-comment a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.frame-comment a:hover {
+    color: #e3b27f;
+}
+
+.frame-comment:not(:last-child) {
+    border-bottom: 1px dotted rgba(0, 0, 0, .3);
+}
+
+.frame-comment-context {
+    font-size: 10px;
+    color: white;
+}
+
+.details {
+    padding: 0 30px;
+}
+
+.details h2 {
+    color: #e39300;
+    font-weight: 300;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+
+.data-table-container label {
+    font-size: 16px;
+    color: #303030;
+    font-weight: bold;
+    margin: 10px 0 5px;
+    display: block;
+    padding-bottom: 5px;
+}
+
+div.data-table {
+    margin-bottom: 20px;
+}
+
+.data-table {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.data-table tbody {
+    font: 13px "Inconsolata", "Fira Mono", "Source Code Pro", Monaco, Consolas, "Lucida Console", monospace;
+}
+
+.data-table thead {
+    display: none;
+}
+
+.data-table tr {
+    padding: 5px 0;
+}
+
+.data-table td:first-child {
+    width: 20%;
+    min-width: 130px;
+    overflow: hidden;
+    font-weight: bold;
+    color: #463C54;
+    padding-right: 5px;
+
+}
+
+.data-table td:last-child {
+    width: 80%;
+    -ms-word-break: break-all;
+    word-break: break-all;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+}
+
+.data-table td {
+    vertical-align: top;
+}
+
+.data-table span.empty {
+    color: #888;
+}
+
+.handler {
+    padding: 4px 0;
+    font: 14px "Inconsolata", "Fira Mono", "Source Code Pro", Monaco, Consolas, "Lucida Console", monospace;
+}
+
+/* == Media queries */
+
+/* Expand the spacing in the details section */
+@media (min-width: 1000px) {
+    .frame-code {
+        padding: 20px 40px;
+        margin-bottom: 20px;
+    }
+    .frames-container {
+        margin: 8px;
+    }
+}

@@ -61,9 +61,7 @@ Zepto(function ($) {
         showTooltip(e.trigger, fallbackMessage(e.action));
     });
 
-    var btn = document.querySelector('.clipboard');
-
-    btn.addEventListener('mouseleave', function (e) {
+    $('.clipboard').mouseleave(function (e) {
         e.currentTarget.setAttribute('class', 'clipboard');
         e.currentTarget.removeAttribute('aria-label');
     });
@@ -80,6 +78,11 @@ Zepto(function ($) {
 
         return actionMsg;
     }
+
+    $("#google-button").click(function(e) {
+        var exception = e.currentTarget.getAttribute("data-google-query");
+        window.open("https://www.google.com/?#q="+exception);
+    });
 
     $(document).on('keydown', function (e) {
         if (e.ctrlKey) {
