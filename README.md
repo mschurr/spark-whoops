@@ -2,7 +2,7 @@ spark-whoops
 =====================
 Better error pages for the [Spark Java micro-framework](http://sparkjava.com/).
 
-![image](http://i.imgur.com/oaHfcVO.png)
+![image](http://i.imgur.com/IjGA0xE.png)
 
 ## Usage:
 To utilize:
